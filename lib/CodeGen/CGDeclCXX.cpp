@@ -337,12 +337,13 @@ CodeGenModule::EmitCXXGlobalInitFunc() {
                          PrioritizedCXXGlobalInits.end()); 
     for (unsigned i = 0; i < PrioritizedCXXGlobalInits.size(); i++) {
       llvm::Function *Fn = PrioritizedCXXGlobalInits[i].second;
-      LocalCXXGlobalInits.push_back(Fn);
+      //LocalCXXGlobalInits.push_back(Fn);
+      AddGlobalCtor(Fn, PrioritizedCXXGlobalInits[i].first.priority);
     }
-    LocalCXXGlobalInits.append(CXXGlobalInits.begin(), CXXGlobalInits.end());
+    //LocalCXXGlobalInits.append(CXXGlobalInits.begin(), CXXGlobalInits.end());
     CodeGenFunction(*this).GenerateCXXGlobalInitFunc(Fn,
-                                                    &LocalCXXGlobalInits[0],
-                                                    LocalCXXGlobalInits.size());
+                                                    &CXXGlobalInits[0],
+                                                    CXXGlobalInits.size());
   }
   else
     CodeGenFunction(*this).GenerateCXXGlobalInitFunc(Fn,
