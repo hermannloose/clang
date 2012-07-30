@@ -325,31 +325,30 @@ CodeGenModule::EmitCXXGlobalInitFunc() {
   if (CXXGlobalInits.empty() && PrioritizedCXXGlobalInits.empty())
     return;
 
-  llvm::FunctionType *FTy = llvm::FunctionType::get(VoidTy, false);
-
-  // Create our global initialization function.
-  llvm::Function *Fn = 
-    CreateGlobalInitOrDestructFunction(*this, FTy, "_GLOBAL__I_a");
-
   if (!PrioritizedCXXGlobalInits.empty()) {
     SmallVector<llvm::Constant*, 8> LocalCXXGlobalInits;
     llvm::array_pod_sort(PrioritizedCXXGlobalInits.begin(), 
                          PrioritizedCXXGlobalInits.end()); 
     for (unsigned i = 0; i < PrioritizedCXXGlobalInits.size(); i++) {
       llvm::Function *Fn = PrioritizedCXXGlobalInits[i].second;
-      //LocalCXXGlobalInits.push_back(Fn);
       AddGlobalCtor(Fn, PrioritizedCXXGlobalInits[i].first.priority);
     }
-    //LocalCXXGlobalInits.append(CXXGlobalInits.begin(), CXXGlobalInits.end());
+  }
+
+  if (!CXXGlobalInits.empty()) {
+    llvm::FunctionType *FTy = llvm::FunctionType::get(VoidTy, false);
+
+    // Create our global initialization function.
+    llvm::Function *Fn =
+        CreateGlobalInitOrDestructFunction(*this, FTy, "_GLOBAL__I_a");
+
     CodeGenFunction(*this).GenerateCXXGlobalInitFunc(Fn,
                                                     &CXXGlobalInits[0],
                                                     CXXGlobalInits.size());
+
+    AddGlobalCtor(Fn);
   }
-  else
-    CodeGenFunction(*this).GenerateCXXGlobalInitFunc(Fn,
-                                                     &CXXGlobalInits[0],
-                                                     CXXGlobalInits.size());
-  AddGlobalCtor(Fn);
+
   CXXGlobalInits.clear();
   PrioritizedCXXGlobalInits.clear();
 }
